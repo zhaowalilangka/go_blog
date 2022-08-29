@@ -1,12 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/zhaowalilangka/go_blog/global"
 	"github.com/zhaowalilangka/go_blog/internal/model"
+	"github.com/zhaowalilangka/go_blog/internal/routers"
 	"github.com/zhaowalilangka/go_blog/pkg/errcode/setting"
 	"github.com/zhaowalilangka/go_blog/pkg/logger"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -72,19 +74,16 @@ func init() {
 }
 
 func main() {
-	fmt.Println(global.AppSetting)
 
-	global.Logger.Errorf("--------")
-
-	// gin.SetMode(gin.ReleaseMode)
-	// router := routers.NewRouter()
-	// s := &http.Server{
-	// 	Addr:           ":" + global.ServerSetting.HttpPort,
-	// 	Handler:        router,
-	// 	ReadTimeout:    global.ServerSetting.ReadTimeout,
-	// 	WriteTimeout:   global.ServerSetting.WriteTimeout,
-	// 	MaxHeaderBytes: 1 << 20,
-	// }
-	// s.ListenAndServe()
+	gin.SetMode(gin.ReleaseMode)
+	router := routers.NewRouter()
+	s := &http.Server{
+		Addr:           ":" + global.ServerSetting.HttpPort,
+		Handler:        router,
+		ReadTimeout:    global.ServerSetting.ReadTimeout,
+		WriteTimeout:   global.ServerSetting.WriteTimeout,
+		MaxHeaderBytes: 1 << 20,
+	}
+	s.ListenAndServe()
 
 }
