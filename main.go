@@ -74,7 +74,7 @@ func init() {
 func main() {
 	fmt.Println(global.AppSetting)
 
-	global.Logger.Infof("%s: go-programming-tour-book/%s", "eddycjy", "blog-service")
+	global.Logger.Errorf("--------")
 
 	// gin.SetMode(gin.ReleaseMode)
 	// router := routers.NewRouter()
