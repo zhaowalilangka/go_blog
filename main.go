@@ -1,13 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/zhaowalilangka/go_blog/global"
-	"github.com/zhaowalilangka/go_blog/internal/routers"
+	"github.com/zhaowalilangka/go_blog/internal/model"
 	"github.com/zhaowalilangka/go_blog/pkg/errcode/setting"
+	"github.com/zhaowalilangka/go_blog/pkg/logger"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func setupSetting() error {
@@ -33,23 +35,56 @@ func setupSetting() error {
 	return nil
 }
 
+func setupDBEngine() error {
+	var err error
+	global.DBEngine, err = model.NewDBEngine(global.DatabaseSetting)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func setupLogger() error {
+	global.Logger = logger.NewLogger(&lumberjack.Logger{
+		Filename:  global.AppSetting.LogSavePath + "/" + global.AppSetting.LogFileName + global.AppSetting.LogFileExt,
+		MaxSize:   600,
+		MaxAge:    10,
+		LocalTime: true,
+	}, "", log.LstdFlags).WithCaller(2)
+
+	return nil
+}
+
 func init() {
 	err := setupSetting()
 	if err != nil {
 		log.Fatalf("init.setupSetting err: %v", err)
 	}
+	err = setupDBEngine()
+	if err != nil {
+		log.Fatalf("init.setupDBEngine err: %v", err)
+	}
+	err = setupLogger()
+	if err != nil {
+		log.Fatalf("init.setupLogger err: %v", err)
+	}
 }
 
 func main() {
+	fmt.Println(global.AppSetting)
+
+	global.Logger.Infof("%s: go-programming-tour-book/%s", "eddycjy", "blog-service")
+
 	// gin.SetMode(gin.ReleaseMode)
-	router := routers.NewRouter()
-	s := &http.Server{
-		Addr:           ":" + global.ServerSetting.HttpPort,
-		Handler:        router,
-		ReadTimeout:    global.ServerSetting.ReadTimeout,
-		WriteTimeout:   global.ServerSetting.WriteTimeout,
-		MaxHeaderBytes: 1 << 20,
-	}
-	s.ListenAndServe()
+	// router := routers.NewRouter()
+	// s := &http.Server{
+	// 	Addr:           ":" + global.ServerSetting.HttpPort,
+	// 	Handler:        router,
+	// 	ReadTimeout:    global.ServerSetting.ReadTimeout,
+	// 	WriteTimeout:   global.ServerSetting.WriteTimeout,
+	// 	MaxHeaderBytes: 1 << 20,
+	// }
+	// s.ListenAndServe()
 
 }
