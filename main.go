@@ -1,41 +1,55 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/zhaowalilangka/go_blog/global"
 	"github.com/zhaowalilangka/go_blog/internal/routers"
+	"github.com/zhaowalilangka/go_blog/pkg/errcode/setting"
 )
 
-type User struct {
-	Name string
+func setupSetting() error {
+	setting, err := setting.NewSetting()
+	if err != nil {
+		return err
+	}
+	err = setting.ReadSection("Server", &global.ServerSetting)
+	if err != nil {
+		return err
+	}
+	err = setting.ReadSection("App", &global.AppSetting)
+	if err != nil {
+		return err
+	}
+	err = setting.ReadSection("Database", &global.DatabaseSetting)
+	if err != nil {
+		return err
+	}
+
+	global.ServerSetting.ReadTimeout *= time.Second
+	global.ServerSetting.WriteTimeout *= time.Second
+	return nil
 }
 
-type Bin struct {
-	User
-	Age int
-}
-
-func (u *User) GetName() string {
-	return u.Name
+func init() {
+	err := setupSetting()
+	if err != nil {
+		log.Fatalf("init.setupSetting err: %v", err)
+	}
 }
 
 func main() {
+	// gin.SetMode(gin.ReleaseMode)
 	router := routers.NewRouter()
 	s := &http.Server{
-		Addr:           ":8080",
+		Addr:           ":" + global.ServerSetting.HttpPort,
 		Handler:        router,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    global.ServerSetting.ReadTimeout,
+		WriteTimeout:   global.ServerSetting.WriteTimeout,
 		MaxHeaderBytes: 1 << 20,
 	}
 	s.ListenAndServe()
-
-	// a := &Bin{
-	// 	User{"ddd"}, 3,
-	// }
-	// fmt.Println(a.GetName())
-
-	// fmt.Println(a)
 
 }
